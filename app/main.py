@@ -27,7 +27,8 @@ def create_exception(payload: ExceptionIn, conn: psycopg.Connection = Depends(ge
 
 @app.get("/exceptions/{exception_id}", response_model=ExceptionOut)
 def read_exception(exception_id: int, conn: psycopg.Connection = Depends(get_db)):
-    row = repository.get_exception(conn, exception_id)
-    if row is None:
-        raise HTTPException(status_code=404, detail="Exception not found")
-    return row
+    try:
+        return repository.get_exception(conn, exception_id)
+    except repository.ExceptionNotFoundError as exc:
+        # La API traduce el error de dominio a un código HTTP
+        raise HTTPException(status_code=404, detail=str(exc)) from exc

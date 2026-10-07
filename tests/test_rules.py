@@ -15,6 +15,7 @@ from app.rules import guess_category
         ("Invoice is missing mandatory field TaxId", "business_data"),
         ("SAP returned 503 Service Unavailable", "system_down"),
         ("Something weird happened", "unknown"),
+        ("Robot BOT_401 finished processing invoice INV-2207", "unknown"),
     ],
 )
 def test_guess_category(message: str, expected: str) -> None:
