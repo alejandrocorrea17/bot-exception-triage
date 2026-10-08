@@ -1,5 +1,5 @@
 import psycopg
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.responses import JSONResponse
 
 from app import repository
@@ -32,3 +32,12 @@ def read_exception(exception_id: int, conn: psycopg.Connection = Depends(get_db)
     except repository.ExceptionNotFoundError as exc:
         # La API traduce el error de dominio a un código HTTP
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+        
+        
+@app.get("/exceptions", response_model=list[ExceptionOut])
+def read_exceptions(
+    robot_name: str | None = None,
+    limit: int = Query(20, ge=1, le=100),
+    conn: psycopg.Connection = Depends(get_db),
+):
+    return  repository.list_exceptions(conn, robot_name, limit)

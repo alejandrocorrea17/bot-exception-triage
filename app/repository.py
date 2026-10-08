@@ -40,3 +40,17 @@ def get_exception(conn: psycopg.Connection, exception_id: int) -> dict:
         # El repositorio no sabe de HTTP: solo dice qué pasó
         raise ExceptionNotFoundError(exception_id)
     return row
+    
+def list_exceptions(conn: psycopg.Connection, robot_name: str | None, limit: int) -> list[dict]:
+    sql = """
+        SELECT id, robot_name, process_name, exception_type, message, severity, occurred_at, received_at
+        FROM bot_exceptions
+    """
+    params: list = []
+    if robot_name is not None:
+        sql += " WHERE robot_name = %s "
+        params.append(robot_name)
+        pass
+    sql += " ORDER BY received_at DESC LIMIT %s "
+    params.append(limit)
+    return conn.execute(sql, params).fetchall()

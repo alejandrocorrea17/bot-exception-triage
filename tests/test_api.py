@@ -38,3 +38,23 @@ def test_create_exception_invalid_severity():
 
 def test_get_exception_not_found():
     assert client.get("/exceptions/999999999").status_code == 404
+    
+def test_list_exceptions_limit_too_high():
+    # limit tiene máximo 100: FastAPI debe rechazar 500 antes de entrar al endpoint
+    assert client.get("/exceptions", params={"limit": 500}).status_code == 422
+
+
+def test_list_exceptions_filter_by_robot():
+    # 1. Crear una excepción con un robot propio de esta prueba
+    payload = {**VALID, "robot_name": "BOT_FILTER_TEST"}
+    assert client.post("/exceptions", json=payload).status_code == 201
+
+    # 2. Consultar filtrando por ese robot
+    r = client.get("/exceptions", params={"robot_name": "BOT_FILTER_TEST"})
+    assert r.status_code == 200
+    results = r.json()
+
+    # 3. Debe haber al menos un resultado y todos deben ser de ese robot
+    assert len(results) > 0
+    for item in results:
+        assert item["robot_name"] == "BOT_FILTER_TEST"
